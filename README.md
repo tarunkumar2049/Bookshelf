@@ -1,6 +1,6 @@
 # Bookshelf Web Reader Platform
 
-A MangaDex-inspired web reader built with static HTML, CSS, vanilla JavaScript, PHP backend APIs, MySQL, and no frameworks.
+A web reader built with static HTML, CSS, vanilla JavaScript, PHP backend APIs, MySQL, and no frameworks.
 
 The frontend is pure `.html`, `.css`, and `.js`. PHP is used only for backend/API work: database queries, admin sessions, password verification, CSRF checks, and file uploads.
 
