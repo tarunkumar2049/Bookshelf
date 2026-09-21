@@ -3080,6 +3080,11 @@ body.reader-flip .reader-toolbar h1 {
     transform: scale(1.15);
 }
 
+/* Hide the pill while dots aren't rendered yet (page reload / no slides). */
+.slider-dots:empty {
+    display: none !important;
+}
+
 /* Remove the old external-dots positioning because the dots now live inside. */
 .bookshelf-hero + .slider-dots,
 .bookhub-hero + .slider-dots {
