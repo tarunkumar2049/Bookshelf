@@ -538,6 +538,7 @@ function create_reader_otp(PDO $db, string $email): string
 
 function send_reader_otp(string $email, string $otp): bool
 {
+    $mail = null;
     try {
         $mail = new PHPMailer(true);
 
@@ -546,14 +547,19 @@ function send_reader_otp(string $email, string $otp): bool
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
 
-        $mail->Username = $_ENV['SMTP_USERNAME'] ?? '';
-        $mail->Password = $_ENV['SMTP_PASSWORD'] ?? '';
+        $smtpUser = trim((string) ($_ENV['SMTP_USERNAME'] ?? ''));
+        $smtpPass = str_replace(' ', '', trim((string) ($_ENV['SMTP_PASSWORD'] ?? '')));
+
+        $mail->Username = $smtpUser;
+        $mail->Password = $smtpPass;
 
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
+        $mail->Timeout = 15;
+        $mail->CharSet = 'UTF-8';
 
         $mail->setFrom(
-            'library.of.bookshelf@gmail.com',
+            $smtpUser !== '' ? $smtpUser : 'library.of.bookshelf@gmail.com',
             'Bookshelf Team'
         );
 
@@ -575,10 +581,12 @@ function send_reader_otp(string $email, string $otp): bool
             <p>This code expires in 10 minutes.</p>
         </div>";
 
+        $mail->AltBody = "Your Bookshelf verification code is: {$otp}. This code expires in 10 minutes.";
+
         return $mail->send();
 
-    } catch (Exception $e) {
-        error_log($mail->ErrorInfo);
+    } catch (\Throwable $e) {
+        error_log('OTP send failed: ' . $e->getMessage() . ' | ' . ($mail instanceof PHPMailer ? $mail->ErrorInfo : 'mailer not ready'));
         return false;
     }
 }

@@ -85,6 +85,7 @@ if (time() > $expiry) {
     if ($mode === 'register') {
         enforce_rate_limit('user_register', 3, 600);
 
+        $isResend = false;
         try {
             $stmt = $db->prepare(
                 'INSERT INTO users (email, password, role, email_verified) VALUES (:email, :password, "user", 0)'
@@ -94,14 +95,38 @@ if (time() > $expiry) {
                 'password' => password_hash($password, PASSWORD_DEFAULT),
             ]);
         } catch (Throwable $exception) {
-            json_error('Invalid login details.', 401);
+            $existingStmt = $db->prepare(
+                'SELECT id, password, email_verified, role FROM users WHERE email = :email LIMIT 1'
+            );
+            $existingStmt->execute(['email' => $email]);
+            $existing = $existingStmt->fetch();
+
+            if (!$existing || (int) ($existing['email_verified'] ?? 1) === 1) {
+                json_error('Invalid login details.', 401);
+            }
+
+            if (!password_verify($password, (string) ($existing['password'] ?? ''))) {
+                json_error('Invalid login details.', 401);
+            }
+
+            $isResend = true;
         }
 
         $otp = create_reader_otp($db, $email);
         if (!send_reader_otp($email, $otp)) {
+            if (!$isResend) {
+                try {
+                    $cleanupStmt = $db->prepare(
+                        'DELETE FROM users WHERE email = :email AND email_verified = 0'
+                    );
+                    $cleanupStmt->execute(['email' => $email]);
+                } catch (Throwable $cleanupException) {
+                    // Retry stays possible via resend path even if cleanup fails.
+                }
+            }
             json_error('Could not send OTP email. Configure SMTP/mail in PHP and try again.');
         }
-        json_login_requires_otp($email, 'Account created. Enter the OTP sent to your email.');
+        json_login_requires_otp($email, $isResend ? 'New OTP sent to your email.' : 'Account created. Enter the OTP sent to your email.');
     }
 
     $stmt = $db->prepare(
