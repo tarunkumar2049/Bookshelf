@@ -3658,11 +3658,12 @@ select:focus-visible {
 .site-footer-inner {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     max-width: 1120px;
     margin: 0 auto;
     gap: 16px;
     flex-wrap: wrap;
+    text-align: center;
 }
 
 .site-footer p {
