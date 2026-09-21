@@ -262,6 +262,7 @@ button:disabled {
     justify-content: center;
     width: 40px;
     height: 40px;
+    min-height: 40px;
     padding: 0;
     border: 1px solid var(--line);
     border-radius: 50%;
@@ -415,6 +416,7 @@ h3 {
     justify-content: center;
     width: 36px;
     height: 36px;
+    min-height: 36px;
     padding: 0;
     border: none;
     border-radius: 50%;
@@ -459,6 +461,7 @@ h3 {
     justify-content: center;
     width: 40px;
     height: 40px;
+    min-height: 40px;
     padding: 0;
     border: 1px solid var(--line);
     border-radius: 50%;
@@ -2365,6 +2368,7 @@ body.reader-flip .reader-toolbar h1 {
     .search-overlay .search-bar button[type="submit"] {
         width: 44px;
         height: 44px;
+        min-height: 44px;
         border-radius: 50%;
         background: var(--orange);
         color: var(--white);
@@ -2380,6 +2384,7 @@ body.reader-flip .reader-toolbar h1 {
         justify-content: center;
         width: 44px;
         height: 44px;
+        min-height: 44px;
         padding: 0;
         border: 1px solid var(--line);
         border-radius: 50%;
