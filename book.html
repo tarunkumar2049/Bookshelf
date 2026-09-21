@@ -1,0 +1,85 @@
+<?php require __DIR__ . '/version.php'; ?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Book - Bookshelf Reader</title>
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
+    <link rel="stylesheet" href="assets/css/style.css?v=<?= ASSET_VERSION ?>">
+</head>
+<body>
+<header class="site-header">
+    <a class="brand" href="index.html">
+        <span class="brand-title">Bookshelf</span>
+    </a>
+    <div class="nav-actions">
+        <button type="button" class="search-toggle" aria-label="Open search">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </button>
+        <button type="button" class="user-panel-toggle" id="userPanelToggle" aria-label="Open menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </button>
+    </div>
+    <div class="search-overlay" id="searchOverlay">
+        <form class="search-bar" id="searchForm">
+            <input id="q" name="q" type="search" placeholder="Search" autocomplete="off">
+            <button type="submit" aria-label="Search">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+            <button type="button" class="search-close" id="searchClose" aria-label="Close search">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </form>
+        <div class="genre-search-panel" id="genreSearchPanel" hidden>
+            <p>Search books by genre</p>
+            <div class="genre-list" id="genreList"></div>
+        </div>
+    </div>
+</header>
+
+<main class="page-shell">
+    <section class="book-detail" id="bookDetail"></section>
+    <section class="chapter-list" id="bookContentSection" hidden>
+        <div class="section-heading">
+            <h2 id="bookContentTitle">Chapters</h2>
+            <span id="chapterCount">0 total</span>
+        </div>
+        <div id="chapterList"></div>
+    </section>
+    <section class="book-shelf" aria-labelledby="bookRecommendationsTitle">
+        <div class="section-heading">
+            <div>
+                <h2 id="bookRecommendationsTitle">Recommended</h2>
+                <p>More books from similar genres</p>
+            </div>
+            <div class="shelf-controls" aria-label="Recommended controls">
+                <button type="button" class="shelf-scroll-button" data-scroll-shelf="bookRecommendations" data-direction="-1" aria-label="Scroll recommendations left">&lt;</button>
+                <button type="button" class="shelf-scroll-button" data-scroll-shelf="bookRecommendations" data-direction="1" aria-label="Scroll recommendations right">&gt;</button>
+            </div>
+        </div>
+        <div class="shelf-track" id="bookRecommendations"></div>
+    </section>
+</main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>Bookshelf Web Reader Platform</p>
+    </div>
+</footer>
+<script src="assets/js/app.js?v=<?= ASSET_VERSION ?>"></script>
+<div class="user-panel-backdrop" id="userPanelBackdrop" hidden></div>
+<aside class="user-panel" id="userPanel" aria-label="User menu">
+    <div class="user-panel-header">
+        <a class="brand user-panel-brand" href="index.html">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <span class="brand-title">Book<span>shelf</span></span>
+        </a>
+        <button type="button" class="user-panel-close" id="userPanelClose" aria-label="Close menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+    </div>
+    <div class="user-panel-body" id="userPanelBody"></div>
+</aside>
+</body>
+</html>

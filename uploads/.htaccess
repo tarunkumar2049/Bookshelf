@@ -1,0 +1,8 @@
+Options -Indexes
+
+# Allow normal uploaded files such as JPG, PNG, WEBP and PDF.
+# Prevent PHP and similar files from being executed.
+
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|phps)$">
+    Require all denied
+</FilesMatch>

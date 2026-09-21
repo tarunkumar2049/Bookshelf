@@ -1,0 +1,7 @@
+.env
+uploads/*
+!uploads/.htaccess
+Thumbs.db
+desktop.ini
+.vscode/
+*.log

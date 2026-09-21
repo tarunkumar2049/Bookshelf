@@ -1,0 +1,4 @@
+USE if0_42944029_library_db;
+
+ALTER TABLE books
+    ADD COLUMN IF NOT EXISTS pdf_file VARCHAR(255) DEFAULT NULL AFTER cover_image;

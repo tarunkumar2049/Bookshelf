@@ -1,0 +1,66 @@
+<?php require __DIR__ . '/version.php'; ?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create Admin - Bookshelf Reader</title>
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
+    <link rel="stylesheet" href="assets/css/style.css?v=<?= ASSET_VERSION ?>">
+</head>
+<body>
+<header class="site-header">
+    <a class="brand" href="index.html">
+        <span class="brand-title">Bookshelf</span>
+    </a>
+    <div class="nav-actions">
+        <button type="button" class="user-panel-toggle" id="userPanelToggle" aria-label="Open menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </button>
+    </div>
+</header>
+
+<main class="page-shell">
+    <section class="auth-card">
+        <h1>Create first admin</h1>
+        <p class="muted" id="setupMessage">Run this once after importing the database schema.</p>
+        <div id="setupNotice"></div>
+        <form method="post" class="stack-form" id="setupForm">
+            <label>
+                Email
+                <input type="email" name="email" required>
+            </label>
+            <label>
+                Password
+                <input type="password" name="password" required minlength="8">
+            </label>
+            <label>
+                Confirm password
+                <input type="password" name="confirm_password" required minlength="8">
+            </label>
+            <button type="submit">Create admin</button>
+        </form>
+    </section>
+</main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>Bookshelf Web Reader Platform</p>
+    </div>
+</footer>
+<script src="assets/js/app.js?v=<?= ASSET_VERSION ?>"></script>
+<div class="user-panel-backdrop" id="userPanelBackdrop" hidden></div>
+<aside class="user-panel" id="userPanel" aria-label="User menu">
+    <div class="user-panel-header">
+        <a class="brand user-panel-brand" href="index.html">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <span class="brand-title">Book<span>shelf</span></span>
+        </a>
+        <button type="button" class="user-panel-close" id="userPanelClose" aria-label="Close menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+    </div>
+    <div class="user-panel-body" id="userPanelBody"></div>
+</aside>
+</body>
+</html>

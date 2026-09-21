@@ -1,0 +1,8 @@
+USE if0_42944029_library_db;
+
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS profile_image VARCHAR(255) DEFAULT NULL AFTER role,
+    ADD COLUMN IF NOT EXISTS email_verified TINYINT(1) NOT NULL DEFAULT 0 AFTER profile_image,
+    ADD COLUMN IF NOT EXISTS otp_code_hash VARCHAR(255) DEFAULT NULL AFTER email_verified,
+    ADD COLUMN IF NOT EXISTS otp_expires_at DATETIME DEFAULT NULL AFTER otp_code_hash;
+

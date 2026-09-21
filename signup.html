@@ -1,0 +1,77 @@
+<?php require __DIR__ . '/version.php'; ?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign Up - Bookshelf</title>
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
+    <link rel="stylesheet" href="assets/css/style.css?v=<?= ASSET_VERSION ?>">
+</head>
+<body>
+<header class="site-header">
+    <a class="brand" href="index.html">
+        <span class="brand-title">Bookshelf</span>
+    </a>
+    <div class="nav-actions">
+        <button type="button" class="user-panel-toggle" id="userPanelToggle" aria-label="Open menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </button>
+    </div>
+</header>
+
+<main class="page-shell auth-shell">
+    <section class="auth-card">
+        <div class="auth-kicker">Start reading</div>
+        <h1>Create reader account</h1>
+        <p class="muted">Register with your email to save reading history, library, and wishlist.</p>
+        <div id="readerRegisterNotice"></div>
+        <form method="post" class="stack-form" id="readerRegisterForm">
+            <label class="field-group">
+                <span>Email</span>
+                <input type="email" name="email" required autocomplete="email">
+            </label>
+            <label class="field-group">
+                <span>Password</span>
+                <input type="password" name="password" required minlength="8" autocomplete="new-password">
+            </label>
+            <button type="submit">Create account</button>
+        </form>
+        <div class="auth-switch">
+            <p>Already have an account?</p>
+            <a class="button-link secondary" href="login.html">Back to login</a>
+        </div>
+        <form method="post" class="stack-form otp-form" id="readerOtpForm" hidden aria-label="Email OTP verification">
+            <h2>Enter OTP</h2>
+            <p class="muted" id="readerOtpMessage">Enter the OTP sent to your email.</p>
+            <input type="hidden" name="email">
+            <label class="field-group">
+                <span>OTP</span>
+                <input type="text" name="otp" required inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code">
+            </label>
+            <button type="submit">Verify OTP</button>
+        </form>
+    </section>
+</main>
+
+<footer class="site-footer">
+    <div class="site-footer-inner">
+        <p>Bookshelf Web Reader Platform</p>
+    </div>
+</footer>
+<script src="assets/js/app.js?v=<?= ASSET_VERSION ?>"></script>
+<div class="user-panel-backdrop" id="userPanelBackdrop" hidden></div>
+<aside class="user-panel" id="userPanel" aria-label="User menu">
+    <div class="user-panel-header">
+        <a class="brand user-panel-brand" href="index.html">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <span class="brand-title">Book<span>shelf</span></span>
+        </a>
+        <button type="button" class="user-panel-close" id="userPanelClose" aria-label="Close menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+    </div>
+    <div class="user-panel-body" id="userPanelBody"></div>
+</aside>
+</body>
+</html>
