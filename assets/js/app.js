@@ -2501,9 +2501,12 @@ async function initNotifications() {
     const isAdminPage = !!document.querySelector('#adminNotice');
     const isAdmin = user.role === 'admin';
 
-    if (isAdminPage && isAdmin) {
+    // Admins see the pending-requests bell on every page (site homepage + dashboard).
+    if (isAdmin) {
         await loadAdminBell();
-        await loadAdminRequests();
+        if (isAdminPage) {
+            await loadAdminRequests();
+        }
         return;
     }
 
@@ -2565,6 +2568,8 @@ async function loadAdminBell() {
         }
         const dropdown = wrap.querySelector('[data-notification-dropdown]');
         const toggle = wrap.querySelector('[data-bell-toggle]');
+        const onAdminPage = !!document.querySelector('#adminNotice');
+        const requestsUrl = `${app.basePath}/admin/index.html#requests`;
         toggle.addEventListener('click', (event) => {
             event.stopPropagation();
             const willOpen = dropdown.hidden;
@@ -2572,7 +2577,9 @@ async function loadAdminBell() {
             if (willOpen) {
                 const pendingItems = requests.filter((item) => item.status === 'pending').slice(0, 8);
                 dropdown.innerHTML = `<h3>Book requests</h3>` + (pendingItems.length
-                    ? pendingItems.map((item) => `<a class="notification-item" href="#" data-goto-requests><strong>A user requested a book</strong><span>${escapeHtml(item.title)} &middot; ${escapeHtml(item.author)}</span><br><small>${escapeHtml(item.user_email || 'reader')}</small></a>`).join('')
+                    ? pendingItems.map((item) => onAdminPage
+                        ? `<a class="notification-item" href="#" data-goto-requests><strong>A user requested a book</strong><span>${escapeHtml(item.title)} &middot; ${escapeHtml(item.author)}</span><br><small>${escapeHtml(item.user_email || 'reader')}</small></a>`
+                        : `<a class="notification-item" href="${escapeHtml(requestsUrl)}"><strong>A user requested a book</strong><span>${escapeHtml(item.title)} &middot; ${escapeHtml(item.author)}</span><br><small>${escapeHtml(item.user_email || 'reader')} &middot; Tap to review</small></a>`).join('')
                     : '<p class="notification-empty">No pending requests.</p>');
                 dropdown.hidden = false;
             } else {
