@@ -152,6 +152,11 @@ try {
             delete_uploaded_file_if_safe(is_string($existingBook['pdf_file'] ?? null) ? $existingBook['pdf_file'] : null);
         }
 
+        try {
+            fulfill_matching_book_requests($db, $title, $author, $bookId);
+        } catch (Throwable $notifyError) {
+        }
+
         json_response(['ok' => true, 'message' => 'Book updated successfully.']);
     }
 
@@ -168,8 +173,19 @@ try {
         'is_popular' => $isPopular,
     ]);
     sync_book_genres($db, (int) $db->lastInsertId(), $genreIds);
+    $newBookId = (int) $db->lastInsertId();
 
-    json_response(['ok' => true, 'message' => 'Book added successfully.']);
+    // Notify users who requested this exact title+author.
+    $fulfilledCount = 0;
+    try {
+        $fulfilledCount = fulfill_matching_book_requests($db, $title, $author, $newBookId);
+    } catch (Throwable $notifyError) {
+        // Book upload succeeds even if request matching fails.
+    }
+
+    json_response(['ok' => true, 'message' => $fulfilledCount > 0
+        ? 'Book added successfully. ' . $fulfilledCount . ' request(s) fulfilled.'
+        : 'Book added successfully.']);
 } catch (Throwable $exception) {
     json_error($exception->getMessage());
 }

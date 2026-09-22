@@ -1733,6 +1733,9 @@ async function loadAdminDashboard() {
         recentChapters.innerHTML = data.recent_chapters.length
             ? data.recent_chapters.map((chapter) => `<a class="mini-row" href="../reader.html?chapter_id=${Number(chapter.id)}"><span>${escapeHtml(chapter.book_title)} - Ch. ${escapeHtml(chapter.chapter_number)}</span><small>${escapeHtml(chapter.title)}</small></a>`).join('')
             : '<p class="muted">No chapters yet.</p>';
+
+        await loadAdminRequests();
+        await loadAdminBell();
     } catch (error) {
         window.location.href = 'login.html';
     }
@@ -2291,6 +2294,9 @@ function initUserPanel() {
     function openPanel() {
         populateUserPanel(body);
         panel.classList.add('open');
+        if (app.currentUser) {
+            loadMyRequests();
+        }
         if (backdrop) {
             backdrop.hidden = false;
             requestAnimationFrame(() => backdrop.classList.add('open'));
@@ -2379,6 +2385,28 @@ function populateUserPanel(container) {
             <span class="panel-row-label">Library</span>
             <span class="panel-row-arrow">${arrowSvg}</span>
         </a>
+        <button type="button" class="panel-row" data-request-book-toggle>
+            <span class="panel-row-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </span>
+            <span class="panel-row-label">Request a Book</span>
+            <span class="panel-row-arrow">${arrowSvg}</span>
+        </button>
+        <div data-request-book-wrap hidden>
+            <form class="request-form" id="requestBookForm">
+                <label>
+                    Book title
+                    <input type="text" name="title" required maxlength="255" placeholder="Book title" autocomplete="off">
+                </label>
+                <label>
+                    Author
+                    <input type="text" name="author" required maxlength="255" placeholder="Author name" autocomplete="off">
+                </label>
+                <button type="submit" class="panel-btn-primary">Send request</button>
+                <p class="request-status" data-request-status role="status"></p>
+            </form>
+            <div class="request-list" data-my-requests><p class="muted">Loading your requests...</p></div>
+        </div>
         <div class="panel-divider"></div>
         <p class="panel-section-title">Settings</p>
         <button type="button" class="panel-row" onclick="toggleTheme()">
@@ -2407,10 +2435,306 @@ async function handleSignOut() {
     window.location.href = 'index.html';
 }
 
+const BELL_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>';
+
+function removeBell() {
+    document.querySelectorAll('[data-notification-bell]').forEach((el) => el.remove());
+    document.querySelectorAll('[data-notification-dropdown]').forEach((el) => el.remove());
+}
+
+function mountBell(count) {
+    removeBell();
+    const navActions = document.querySelector('.nav-actions');
+    if (!navActions) {
+        return null;
+    }
+    const wrap = document.createElement('div');
+    wrap.className = 'nav-bell-wrap';
+    wrap.setAttribute('data-notification-bell', 'true');
+    wrap.innerHTML = `
+        <button type="button" class="notification-bell" data-bell-toggle aria-label="Notifications">
+            ${BELL_SVG}
+            ${count > 0 ? `<span class="bell-count">${count > 9 ? '9+' : count}</span>` : '<span class="bell-dot" hidden></span>'}
+        </button>
+        <div class="notification-dropdown" data-notification-dropdown hidden></div>
+    `;
+    // Bell sits to the LEFT of the search bar toggle, per spec.
+    const searchToggle = navActions.querySelector('.search-toggle');
+    if (searchToggle) {
+        navActions.insertBefore(wrap, searchToggle);
+    } else {
+        navActions.insertBefore(wrap, navActions.firstChild);
+    }
+    return wrap;
+}
+
+function closeBellDropdown() {
+    document.querySelectorAll('[data-notification-dropdown]').forEach((el) => {
+        el.hidden = true;
+    });
+}
+
+async function initNotifications() {
+    const user = app.currentUser;
+    if (!user) {
+        removeBell();
+        return;
+    }
+    const isAdminPage = !!document.querySelector('#adminNotice');
+    const isAdmin = user.role === 'admin';
+
+    if (isAdminPage && isAdmin) {
+        await loadAdminBell();
+        await loadAdminRequests();
+        return;
+    }
+
+    // Regular reader bell: only visible when a requested book was uploaded.
+    try {
+        const data = await apiFetch('user/book_requests.php');
+        const notifications = data.notifications || [];
+        if (!notifications.length) {
+            removeBell();
+            return;
+        }
+        const wrap = mountBell(notifications.length);
+        if (!wrap) {
+            return;
+        }
+        const dropdown = wrap.querySelector('[data-notification-dropdown]');
+        const toggle = wrap.querySelector('[data-bell-toggle]');
+        toggle.addEventListener('click', async (event) => {
+            event.stopPropagation();
+            const willOpen = dropdown.hidden;
+            closeBellDropdown();
+            if (willOpen) {
+                dropdown.innerHTML = notifications.map((item) => {
+                    const bookId = Number(item.fulfilled_book_id || 0);
+                    const link = bookId ? `book.html?id=${bookId}` : 'index.html';
+                    return `<a class="notification-item" href="${link}"><strong>Your requested book is now on the site</strong><span>${escapeHtml(item.title)} &middot; ${escapeHtml(item.author)}</span><br><small>Tap to open</small></a>`;
+                }).join('');
+                dropdown.hidden = false;
+                // Start the 24h expiry window on first open.
+                try {
+                    await apiFetch('user/book_requests.php', {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'seen', csrf_token: app.csrfToken }),
+                    });
+                } catch (error) {
+                    // Bell still works even if the seen-marker fails.
+                }
+            } else {
+                dropdown.hidden = true;
+            }
+        });
+    } catch (error) {
+        removeBell();
+    }
+}
+
+async function loadAdminBell() {
+    try {
+        const data = await apiFetch('admin/book_requests.php');
+        const pending = Number(data.pending_count || 0);
+        const requests = data.requests || [];
+        if (pending <= 0) {
+            removeBell();
+            return;
+        }
+        const wrap = mountBell(pending);
+        if (!wrap) {
+            return;
+        }
+        const dropdown = wrap.querySelector('[data-notification-dropdown]');
+        const toggle = wrap.querySelector('[data-bell-toggle]');
+        toggle.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const willOpen = dropdown.hidden;
+            closeBellDropdown();
+            if (willOpen) {
+                const pendingItems = requests.filter((item) => item.status === 'pending').slice(0, 8);
+                dropdown.innerHTML = `<h3>Book requests</h3>` + (pendingItems.length
+                    ? pendingItems.map((item) => `<a class="notification-item" href="#" data-goto-requests><strong>A user requested a book</strong><span>${escapeHtml(item.title)} &middot; ${escapeHtml(item.author)}</span><br><small>${escapeHtml(item.user_email || 'reader')}</small></a>`).join('')
+                    : '<p class="notification-empty">No pending requests.</p>');
+                dropdown.hidden = false;
+            } else {
+                dropdown.hidden = true;
+            }
+        });
+    } catch (error) {
+        removeBell();
+    }
+}
+
+async function loadMyRequests() {
+    const list = document.querySelector('[data-my-requests]');
+    if (!list || !app.currentUser) {
+        return;
+    }
+    try {
+        const data = await apiFetch('user/book_requests.php');
+        app.csrfToken = data.csrf_token || app.csrfToken;
+        const requests = data.requests || [];
+        list.innerHTML = requests.length
+            ? requests.slice(0, 10).map((item) => `
+                <div class="request-row">
+                    <div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.author)}</small></div>
+                    <span class="status-pill ${escapeHtml(item.status)}">${escapeHtml(item.status)}</span>
+                </div>`).join('')
+            : '<p class="muted">No requests yet.</p>';
+    } catch (error) {
+        list.innerHTML = `<p class="muted">${escapeHtml(error.message)}</p>`;
+    }
+}
+
+async function loadAdminRequests() {
+    const manager = document.querySelector('#requestManager');
+    if (!manager) {
+        return;
+    }
+    try {
+        const data = await apiFetch('admin/book_requests.php');
+        app.csrfToken = data.csrf_token || app.csrfToken;
+        const requests = data.requests || [];
+        const tabCount = document.querySelector('#requestsTabCount');
+        if (tabCount) {
+            tabCount.textContent = Number(data.pending_count || 0) > 0 ? `(${data.pending_count})` : '';
+        }
+        const books = app.adminBooks || [];
+        manager.innerHTML = requests.length
+            ? requests.map((item) => `
+                <div class="admin-request-row" data-request-id="${Number(item.id)}">
+                    <div class="admin-request-meta">
+                        <strong>${escapeHtml(item.title)}</strong>
+                        <small>${escapeHtml(item.author)} &middot; ${escapeHtml(item.user_email || 'reader')} &middot; ${escapeHtml(new Date(item.created_at).toLocaleDateString())}</small>
+                    </div>
+                    <span class="status-pill ${escapeHtml(item.status)}">${escapeHtml(item.status)}</span>
+                    ${item.status === 'pending' ? `
+                        <select data-fulfill-book-id aria-label="Link uploaded book (optional)">
+                            <option value="">Auto-match / no link</option>
+                            ${books.map((book) => `<option value="${Number(book.id)}">${escapeHtml(book.title)} &middot; ${escapeHtml(book.author || '')}</option>`).join('')}
+                        </select>
+                        <button type="button" class="button-link" data-fulfill-request="${Number(item.id)}">Fulfill</button>
+                        <button type="button" class="secondary-button" data-reject-request="${Number(item.id)}">Reject</button>
+                    ` : `
+                        <button type="button" class="secondary-button" data-reopen-request="${Number(item.id)}">Reopen</button>
+                    `}
+                    <button type="button" class="danger-button" data-delete-request="${Number(item.id)}">Delete</button>
+                </div>`).join('')
+            : '<p class="muted">No book requests yet.</p>';
+    } catch (error) {
+        manager.innerHTML = `<p class="muted">${escapeHtml(error.message)}</p>`;
+    }
+}
+
+function initRequestBookPanel() {
+    document.addEventListener('click', (event) => {
+        const bellToggle = event.target.closest('[data-bell-toggle]');
+        if (!bellToggle) {
+            const dropdown = event.target.closest('[data-notification-dropdown]');
+            const gotoRequests = event.target.closest('[data-goto-requests]');
+            if (gotoRequests) {
+                event.preventDefault();
+                closeBellDropdown();
+                document.querySelector('[data-admin-tab="requests"]')?.click();
+                document.querySelector('[data-admin-panel="requests"]')?.scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+            if (!dropdown) {
+                closeBellDropdown();
+            }
+        }
+
+        const toggle = event.target.closest('[data-request-book-toggle]');
+        if (toggle) {
+            const wrap = document.querySelector('[data-request-book-wrap]');
+            if (wrap) {
+                wrap.hidden = !wrap.hidden;
+                if (!wrap.hidden) {
+                    loadMyRequests();
+                }
+            }
+        }
+    });
+
+    document.addEventListener('submit', async (event) => {
+        const form = event.target.closest('#requestBookForm');
+        if (!form) {
+            return;
+        }
+        event.preventDefault();
+        const status = form.querySelector('[data-request-status]');
+        const formData = new FormData(form);
+        const title = String(formData.get('title') || '').trim();
+        const author = String(formData.get('author') || '').trim();
+        if (status) {
+            status.textContent = 'Sending...';
+        }
+        try {
+            const data = await apiFetch('user/book_requests.php', {
+                method: 'POST',
+                body: JSON.stringify({ title, author, csrf_token: app.csrfToken }),
+            });
+            if (status) {
+                status.textContent = data.message || 'Request sent.';
+            }
+            form.reset();
+            await loadMyRequests();
+        } catch (error) {
+            if (status) {
+                status.textContent = error.message;
+            }
+        }
+    });
+
+    document.querySelector('#refreshRequests')?.addEventListener('click', loadAdminRequests);
+
+    document.querySelector('#requestManager')?.addEventListener('click', async (event) => {
+        const notice = document.querySelector('#adminNotice');
+        const fulfillBtn = event.target.closest('[data-fulfill-request]');
+        const rejectBtn = event.target.closest('[data-reject-request]');
+        const reopenBtn = event.target.closest('[data-reopen-request]');
+        const deleteBtn = event.target.closest('[data-delete-request]');
+        const button = fulfillBtn || rejectBtn || reopenBtn || deleteBtn;
+        if (!button) {
+            return;
+        }
+        const row = button.closest('[data-request-id]');
+        const id = Number(row?.dataset.requestId || 0);
+        try {
+            let payload;
+            if (fulfillBtn) {
+                const select = row?.querySelector('[data-fulfill-book-id]');
+                payload = { action: 'fulfill', id, book_id: Number(select?.value || 0), csrf_token: app.csrfToken };
+            } else if (rejectBtn) {
+                payload = { action: 'reject', id, csrf_token: app.csrfToken };
+            } else if (reopenBtn) {
+                payload = { action: 'reopen', id, csrf_token: app.csrfToken };
+            } else {
+                const data = await apiFetch('admin/book_requests.php', {
+                    method: 'DELETE',
+                    body: JSON.stringify({ id, csrf_token: app.csrfToken }),
+                });
+                showNotice(notice, data.message);
+                await loadAdminRequests();
+                await loadAdminBell();
+                return;
+            }
+            const data = await apiFetch('admin/book_requests.php', { method: 'POST', body: JSON.stringify(payload) });
+            showNotice(notice, data.message);
+            await loadAdminRequests();
+            await loadAdminBell();
+        } catch (error) {
+            showNotice(notice, error.message, 'error');
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     initThemeToggle();
     initSearchToggle();
     initUserPanel();
+    initRequestBookPanel();
     initHomeSearch();
     initCoverPreview();
     initShelfScrolling();
@@ -2419,6 +2743,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initProfileInteractions();
 
     await initReaderSession();
+    await initNotifications();
     await loadHome();
     await initGenreSearch();
     await loadBookDetail();

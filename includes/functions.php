@@ -132,6 +132,70 @@ function verify_csrf_token(?string $token): bool
     return isset($_SESSION['csrf_token']) && is_string($token) && hash_equals($_SESSION['csrf_token'], $token);
 }
 
+function ensure_book_request_tables(PDO $db): void
+{
+    $db->exec(
+        "CREATE TABLE IF NOT EXISTS book_requests (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            user_id INT UNSIGNED NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            author VARCHAR(255) NOT NULL,
+            status ENUM('pending','fulfilled','rejected') NOT NULL DEFAULT 'pending',
+            fulfilled_book_id INT UNSIGNED DEFAULT NULL,
+            seen_at DATETIME DEFAULT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            fulfilled_at DATETIME DEFAULT NULL,
+            CONSTRAINT fk_book_requests_user
+                FOREIGN KEY (user_id) REFERENCES users(id)
+                ON DELETE CASCADE,
+            CONSTRAINT fk_book_requests_book
+                FOREIGN KEY (fulfilled_book_id) REFERENCES books(id)
+                ON DELETE SET NULL,
+            INDEX idx_book_requests_user (user_id),
+            INDEX idx_book_requests_status (status)
+        ) ENGINE=InnoDB"
+    );
+
+    // Best-effort: add columns when table pre-existed from an older migration.
+    foreach (['fulfilled_book_id', 'seen_at', 'fulfilled_at'] as $column) {
+        try {
+            $exists = $db->query("SHOW COLUMNS FROM book_requests LIKE '" . $column . "'")->fetch();
+            if (!$exists) {
+                if ($column === 'fulfilled_book_id') {
+                    $db->exec('ALTER TABLE book_requests ADD COLUMN fulfilled_book_id INT UNSIGNED DEFAULT NULL');
+                } elseif ($column === 'seen_at') {
+                    $db->exec('ALTER TABLE book_requests ADD COLUMN seen_at DATETIME DEFAULT NULL');
+                } else {
+                    $db->exec('ALTER TABLE book_requests ADD COLUMN fulfilled_at DATETIME DEFAULT NULL');
+                }
+            }
+        } catch (Throwable $ignored) {
+        }
+    }
+}
+
+/**
+ * Mark pending requests as fulfilled when a book with matching title+author is uploaded.
+ * Matching is case-insensitive on trimmed values.
+ */
+function fulfill_matching_book_requests(PDO $db, string $title, string $author, int $bookId): int
+{
+    ensure_book_request_tables($db);
+    $stmt = $db->prepare(
+        "UPDATE book_requests
+         SET status = 'fulfilled', fulfilled_book_id = :book_id, fulfilled_at = NOW()
+         WHERE status = 'pending'
+           AND LOWER(TRIM(title)) = LOWER(TRIM(:title))
+           AND LOWER(TRIM(author)) = LOWER(TRIM(:author))"
+    );
+    $stmt->execute([
+        'book_id' => $bookId,
+        'title' => $title,
+        'author' => $author,
+    ]);
+    return (int) $stmt->rowCount();
+}
+
 function ensure_custom_section_tables(PDO $db): void
 {
     $db->exec(

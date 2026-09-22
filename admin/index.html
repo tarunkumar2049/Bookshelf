@@ -65,6 +65,7 @@
     <nav class="admin-tabs" aria-label="Admin sections">
         <button class="active" type="button" data-admin-tab="overview">Overview</button>
         <button type="button" data-admin-tab="books">Books</button>
+        <button type="button" data-admin-tab="requests">Requests <span id="requestsTabCount"></span></button>
         <button type="button" data-admin-tab="genres">Genres</button>
         <button type="button" data-admin-tab="content">Chapters &amp; Pages</button>
         <button type="button" data-admin-tab="sections">Sections</button>
@@ -130,6 +131,17 @@
                     <button type="button" class="button-link secondary" id="cancelBookEdit" hidden>Cancel edit</button>
                 </div>
             </form>
+            </article>
+        </article>
+
+        <article class="admin-tab-panel" data-admin-panel="requests">
+            <article class="panel">
+                <div class="admin-panel-head">
+                    <h2>Book requests</h2>
+                    <button type="button" class="secondary-button" id="refreshRequests">Refresh</button>
+                </div>
+                <p class="muted">Books requested by readers. Uploading a book with a matching title and author fulfills the request automatically.</p>
+                <div id="requestManager"><p class="muted">Loading requests...</p></div>
             </article>
         </article>
 

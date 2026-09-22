@@ -3973,3 +3973,224 @@ select:focus-visible {
     }
 }
 
+/* =========================================================
+   BOOK REQUESTS + NOTIFICATION BELL
+   ========================================================= */
+
+.notification-bell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0;
+    border: 1px solid var(--glass-border);
+    border-radius: 50%;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 180ms ease, color 180ms ease;
+}
+
+.notification-bell:hover {
+    color: var(--orange-dark);
+    background: var(--soft-panel-hover);
+}
+
+.notification-bell .bell-dot {
+    position: absolute;
+    top: 7px;
+    right: 8px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #e33d2e;
+    border: 2px solid var(--page);
+}
+
+.notification-bell .bell-count {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    display: grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #e33d2e;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 60;
+    width: min(340px, calc(100vw - 32px));
+    padding: 8px;
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    background: var(--glass-bg-strong);
+    box-shadow: var(--glass-shadow), var(--glass-highlight);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.notification-dropdown h3 {
+    margin: 0;
+    padding: 10px 12px 6px;
+    font-size: 0.95rem;
+}
+
+.notification-dropdown .notification-item {
+    display: block;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: var(--ink);
+    font-size: 0.88rem;
+}
+
+.notification-dropdown .notification-item:hover {
+    background: var(--soft-panel-hover);
+}
+
+.notification-dropdown .notification-item strong {
+    display: block;
+}
+
+.notification-dropdown .notification-item small {
+    color: var(--muted);
+}
+
+.notification-dropdown .notification-empty {
+    padding: 12px;
+    color: var(--muted);
+    font-size: 0.88rem;
+}
+
+.nav-actions {
+    position: relative;
+}
+
+.nav-bell-wrap {
+    position: relative;
+}
+
+.request-form {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--soft-panel);
+}
+
+.request-form label {
+    display: grid;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.request-form input {
+    height: 40px;
+}
+
+.request-status {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.request-list {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.request-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 0.88rem;
+}
+
+.request-row small {
+    display: block;
+    color: var(--muted);
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.status-pill.pending {
+    background: rgba(255, 105, 8, 0.14);
+    color: var(--orange-dark);
+}
+
+.status-pill.fulfilled {
+    background: rgba(49, 117, 68, 0.14);
+    color: #2e7d46;
+}
+
+.status-pill.rejected {
+    background: rgba(179, 38, 30, 0.12);
+    color: var(--danger);
+}
+
+.admin-request-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+}
+
+.admin-request-row:first-of-type {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.admin-request-row:last-of-type {
+    border-bottom: 0;
+    border-bottom-right-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.admin-request-meta {
+    flex: 1 1 220px;
+    min-width: 0;
+}
+
+.admin-request-meta strong {
+    display: block;
+}
+
+.admin-request-meta small {
+    color: var(--muted);
+}
+
