@@ -628,14 +628,14 @@ const data = await apiFetch(
             const pageUrl = (i) => `index.html?q=${encodeURIComponent(search)}&page=${i}${genreId ? `&genre_id=${genreId}&genre_name=${encodeURIComponent(genreName)}` : ''}`;
 
             const getPageList = (cur, tot) => {
-                if (tot <= 7) {
+                if (tot <= 5) {
                     return Array.from({ length: tot }, (_, idx) => idx + 1);
                 }
                 if (cur <= 4) {
-                    return [1, 2, 3, 4, 5, '...', tot];
+                    return [1, 2, 3, 4, '...', tot];
                 }
                 if (cur >= tot - 3) {
-                    return [1, '...', tot - 4, tot - 3, tot - 2, tot - 1, tot];
+                    return [1, '...', tot - 3, tot - 2, tot - 1, tot];
                 }
                 return [1, '...', cur - 1, cur, cur + 1, '...', tot];
             };
@@ -2532,7 +2532,7 @@ async function initNotifications() {
                 dropdown.innerHTML = notifications.map((item) => {
                     const bookId = Number(item.fulfilled_book_id || 0);
                     const link = bookId ? `book.html?id=${bookId}` : 'index.html';
-                    return `<a class="notification-item" href="${link}"><strong>Your requested book is now on the site</strong><span>${escapeHtml(item.title)} &middot; ${escapeHtml(item.author)}</span><br><small>Tap to open</small></a>`;
+                    return `<a class="notification-item" href="${link}"><strong>Your request is ready &mdash; happy reading!</strong><span>${escapeHtml(item.title)} &middot; ${escapeHtml(item.author)}</span><br><small>Tap to open</small></a>`;
                 }).join('');
                 dropdown.hidden = false;
                 // Start the 24h expiry window on first open.
