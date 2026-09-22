@@ -93,6 +93,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
         $insertStmt->execute(['user_id' => $userId, 'title' => $title, 'author' => $author]);
 
+        // Email the admin (same address as the SMTP account) about the new request.
+        // The request itself succeeds even if the email fails.
+        try {
+            $adminEmail = trim((string) ($_ENV['SMTP_USERNAME'] ?? ''));
+            if ($adminEmail === '') {
+                $adminEmail = 'library.of.bookshelf@gmail.com';
+            }
+            send_book_request_notification($adminEmail, (string) ($user['email'] ?? ''), $title, $author);
+        } catch (Throwable $mailError) {
+            error_log('Book request email failed: ' . $mailError->getMessage());
+        }
+
         json_response(['ok' => true, 'message' => 'Book requested. The admin has been notified.']);
     } catch (Throwable $exception) {
         json_error($exception->getMessage());

@@ -600,6 +600,63 @@ function create_reader_otp(PDO $db, string $email): string
     return $otp;
 }
 
+function send_book_request_notification(string $adminEmail, string $userEmail, string $title, string $author): bool
+{
+    $mail = null;
+    try {
+        $mail = new PHPMailer(true);
+
+        $mail->isSMTP();
+
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+
+        $smtpUser = trim((string) ($_ENV['SMTP_USERNAME'] ?? ''));
+        $smtpPass = str_replace(' ', '', trim((string) ($_ENV['SMTP_PASSWORD'] ?? '')));
+
+        $mail->Username = $smtpUser;
+        $mail->Password = $smtpPass;
+
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;
+        $mail->Timeout = 15;
+        $mail->CharSet = 'UTF-8';
+
+        $mail->setFrom(
+            $smtpUser !== '' ? $smtpUser : 'library.of.bookshelf@gmail.com',
+            'Bookshelf Team'
+        );
+
+        $mail->addAddress($adminEmail);
+
+        $mail->isHTML(true);
+
+        $safeTitle = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
+        $safeAuthor = htmlspecialchars($author, ENT_QUOTES, 'UTF-8');
+        $safeUser = htmlspecialchars($userEmail, ENT_QUOTES, 'UTF-8');
+
+        $mail->Subject = 'New book request: ' . $title;
+
+        $mail->Body = "
+        <div style='font-family:Arial,sans-serif'>
+            <h2>New Book Request</h2>
+            <p>A reader just requested a book:</p>
+            <p><strong>Title:</strong> {$safeTitle}<br>
+            <strong>Author:</strong> {$safeAuthor}<br>
+            <strong>Requested by:</strong> {$safeUser}</p>
+            <p>Review it in the admin dashboard under Requests.</p>
+        </div>";
+
+        $mail->AltBody = "New book request - Title: {$title}, Author: {$author}, Requested by: {$userEmail}";
+
+        return $mail->send();
+
+    } catch (\Throwable $e) {
+        error_log('Book request email failed: ' . $e->getMessage() . ' | ' . ($mail instanceof PHPMailer ? $mail->ErrorInfo : 'mailer not ready'));
+        return false;
+    }
+}
+
 function send_reader_otp(string $email, string $otp): bool
 {
     $mail = null;

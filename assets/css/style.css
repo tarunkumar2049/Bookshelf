@@ -4084,6 +4084,19 @@ select:focus-visible {
     position: relative;
 }
 
+@media (max-width: 560px) {
+    .nav-actions,
+    .nav-bell-wrap {
+        position: static;
+    }
+    .notification-dropdown {
+        top: calc(100% + 10px);
+        left: 12px;
+        right: 12px;
+        width: auto;
+    }
+}
+
 .request-form {
     display: grid;
     gap: 10px;
