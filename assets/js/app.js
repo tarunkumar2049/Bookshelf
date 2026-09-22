@@ -1970,6 +1970,10 @@ function initAdminTabs() {
             });
         });
     });
+    // Deep-link from the side panel "New Request" row: admin/index.html#requests.
+    if (window.location.hash === '#requests') {
+        document.querySelector('[data-admin-tab="requests"]')?.click();
+    }
     document.querySelector('#bookFilter')?.addEventListener('input', applyBookFilter);
 }
 
@@ -2296,6 +2300,7 @@ function initUserPanel() {
         panel.classList.add('open');
         if (app.currentUser) {
             loadMyRequests();
+            loadAdminPendingBadge();
         }
         if (backdrop) {
             backdrop.hidden = false;
@@ -2360,6 +2365,40 @@ function populateUserPanel(container) {
     const avatarHtml = user.profile_image
         ? `<img src="${escapeHtml(app.asset(user.profile_image))}" alt="Profile">`
         : initial;
+    const isAdminUser = user.role === 'admin';
+    const adminRequestsUrl = `${app.basePath}/admin/index.html#requests`;
+    const requestSection = isAdminUser
+        ? `
+        <a href="${escapeHtml(adminRequestsUrl)}" class="panel-row" data-admin-requests-link>
+            <span class="panel-row-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            </span>
+            <span class="panel-row-label">New Request <span class="status-pill pending" data-admin-pending-count hidden></span></span>
+            <span class="panel-row-arrow">${arrowSvg}</span>
+        </a>`
+        : `
+        <button type="button" class="panel-row" data-request-book-toggle>
+            <span class="panel-row-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </span>
+            <span class="panel-row-label">Request a Book</span>
+            <span class="panel-row-arrow">${arrowSvg}</span>
+        </button>
+        <div data-request-book-wrap hidden>
+            <form class="request-form" id="requestBookForm">
+                <label>
+                    Book title
+                    <input type="text" name="title" required maxlength="255" placeholder="Book title" autocomplete="off">
+                </label>
+                <label>
+                    Author
+                    <input type="text" name="author" required maxlength="255" placeholder="Author name" autocomplete="off">
+                </label>
+                <button type="submit" class="panel-btn-primary">Send request</button>
+                <p class="request-status" data-request-status role="status"></p>
+            </form>
+            <div class="request-list" data-my-requests><p class="muted">Loading your requests...</p></div>
+        </div>`;
 
     container.innerHTML = `
         <div class="panel-user-avatar">
@@ -2385,28 +2424,7 @@ function populateUserPanel(container) {
             <span class="panel-row-label">Library</span>
             <span class="panel-row-arrow">${arrowSvg}</span>
         </a>
-        <button type="button" class="panel-row" data-request-book-toggle>
-            <span class="panel-row-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            </span>
-            <span class="panel-row-label">Request a Book</span>
-            <span class="panel-row-arrow">${arrowSvg}</span>
-        </button>
-        <div data-request-book-wrap hidden>
-            <form class="request-form" id="requestBookForm">
-                <label>
-                    Book title
-                    <input type="text" name="title" required maxlength="255" placeholder="Book title" autocomplete="off">
-                </label>
-                <label>
-                    Author
-                    <input type="text" name="author" required maxlength="255" placeholder="Author name" autocomplete="off">
-                </label>
-                <button type="submit" class="panel-btn-primary">Send request</button>
-                <p class="request-status" data-request-status role="status"></p>
-            </form>
-            <div class="request-list" data-my-requests><p class="muted">Loading your requests...</p></div>
-        </div>
+        ${requestSection}
         <div class="panel-divider"></div>
         <p class="panel-section-title">Settings</p>
         <button type="button" class="panel-row" onclick="toggleTheme()">
@@ -2584,6 +2602,25 @@ async function loadMyRequests() {
             : '<p class="muted">No requests yet.</p>';
     } catch (error) {
         list.innerHTML = `<p class="muted">${escapeHtml(error.message)}</p>`;
+    }
+}
+
+async function loadAdminPendingBadge() {
+    const badge = document.querySelector('[data-admin-pending-count]');
+    if (!badge || !app.currentUser || app.currentUser.role !== 'admin') {
+        return;
+    }
+    try {
+        const data = await apiFetch('admin/book_requests.php');
+        const pending = Number(data.pending_count || 0);
+        if (pending > 0) {
+            badge.textContent = pending > 9 ? '9+' : String(pending);
+            badge.hidden = false;
+        } else {
+            badge.hidden = true;
+        }
+    } catch (error) {
+        badge.hidden = true;
     }
 }
 
