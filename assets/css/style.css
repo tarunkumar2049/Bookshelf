@@ -1051,11 +1051,19 @@ select:focus {
     margin: 32px auto 0;
     padding: 6px;
     gap: 4px;
-    background: var(--panel);
-    border: 1px solid var(--line);
+    background: rgba(238, 238, 235, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: var(--radius-pill);
-    box-shadow: var(--shadow);
+    box-shadow: 0 8px 32px rgba(35, 32, 22, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
     user-select: none;
+}
+
+:root[data-theme="dark"] .pagination {
+    background: rgba(29, 34, 38, 0.55);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .pagination a.page-num {
@@ -1078,8 +1086,10 @@ select:focus {
 
 .pagination a.page-num:hover {
     color: var(--ink);
-    background: var(--soft-panel-hover);
-    border-color: var(--line);
+    background: rgba(255, 255, 255, 0.55);
+    border-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .pagination a.page-num:focus-visible,
@@ -1091,11 +1101,13 @@ select:focus {
 .pagination a.page-num.active {
     min-width: 40px;
     height: 40px;
-    background: var(--orange);
-    border-color: var(--orange);
+    background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+    border-color: rgba(255, 255, 255, 0.35);
     color: var(--white);
     font-weight: 700;
-    box-shadow: 0 4px 12px rgba(255, 105, 8, 0.35);
+    box-shadow: 0 4px 16px rgba(255, 105, 8, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .pagination a.page-num.active:hover {
@@ -1136,9 +1148,11 @@ select:focus {
 }
 
 .pagination a.page-arrow:hover {
-    background: var(--soft-panel-hover);
-    border-color: var(--line);
+    background: rgba(255, 255, 255, 0.55);
+    border-color: rgba(255, 255, 255, 0.6);
     color: var(--ink);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .pagination a.page-arrow.disabled {
