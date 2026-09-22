@@ -1,88 +1,12 @@
-<?php
-require __DIR__ . '/version.php';
-require_once __DIR__ . '/includes/seo.php';
-$seoBookId = (int) ($_GET['id'] ?? 0);
-$seoBook = null;
-$seoGenres = [];
-try {
-    require_once __DIR__ . '/includes/db.php';
-    require_once __DIR__ . '/includes/functions.php';
-    if ($seoBookId > 0) {
-        $seoBook = get_book(Database::connection(), $seoBookId);
-        if ($seoBook) {
-            $seoGenres = get_book_genres(Database::connection(), $seoBookId);
-        }
-    }
-} catch (Throwable $e) {
-    $seoBook = null;
-}
-if ($seoBook) {
-    $seoTitle = $seoBook['title'] . ' by ' . $seoBook['author'] . ' | Bookshelf';
-    $seoDesc = seo_trim_description($seoBook['description'] ?? '', 160);
-    if ($seoDesc === '') {
-        $seoDesc = $seoBook['title'] . ' by ' . $seoBook['author'] . ' — read on Bookshelf.';
-    }
-    $seoCanonical = seo_book_url($seoBook);
-    $seoCover = !empty($seoBook['cover_image']) ? seo_absolute(ltrim($seoBook['cover_image'], '/')) : seo_absolute('assets/images/favicon.png');
-    $seoRobots = 'index, follow, max-image-preview:large';
-} else {
-    $seoTitle = 'Book - Bookshelf Reader';
-    $seoDesc = 'View book details, chapters and recommendations on Bookshelf.';
-    $seoCanonical = seo_absolute('book.html' . ($seoBookId > 0 ? '?id=' . $seoBookId : ''));
-    $seoCover = seo_absolute('assets/images/favicon.png');
-    $seoRobots = $seoBookId > 0 ? 'noindex, follow' : 'noindex, follow';
-}
-?>
+<?php require __DIR__ . '/version.php'; ?>
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= seo_escape($seoTitle) ?></title>
-    <meta name="description" content="<?= seo_escape($seoDesc) ?>">
-    <meta name="robots" content="<?= seo_escape($seoRobots) ?>">
-    <link rel="canonical" href="<?= seo_escape($seoCanonical) ?>">
-    <meta name="theme-color" content="#ff6908">
-    <meta property="og:site_name" content="Bookshelf">
-    <meta property="og:type" content="book">
-    <meta property="og:title" content="<?= seo_escape($seoTitle) ?>">
-    <meta property="og:description" content="<?= seo_escape($seoDesc) ?>">
-    <meta property="og:url" content="<?= seo_escape($seoCanonical) ?>">
-    <meta property="og:image" content="<?= seo_escape($seoCover) ?>">
-    <?php if ($seoBook): ?>
-    <meta property="book:author" content="<?= seo_escape($seoBook['author']) ?>">
-    <?php endif; ?>
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<?= seo_escape($seoTitle) ?>">
-    <meta name="twitter:description" content="<?= seo_escape($seoDesc) ?>">
-    <meta name="twitter:image" content="<?= seo_escape($seoCover) ?>">
+    <title>Book - Bookshelf Reader</title>
     <link rel="icon" type="image/png" href="assets/images/favicon.png">
-    <link rel="preload" href="assets/css/style.css?v=<?= ASSET_VERSION ?>" as="style">
     <link rel="stylesheet" href="assets/css/style.css?v=<?= ASSET_VERSION ?>">
-    <?php if ($seoBook): ?>
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "Book",
-        "name": <?= json_encode($seoBook['title'], JSON_UNESCAPED_SLASHES) ?>,
-        "author": {"@type": "Person", "name": <?= json_encode($seoBook['author'], JSON_UNESCAPED_SLASHES) ?>},
-        "description": <?= json_encode(seo_trim_description($seoBook['description'] ?? '', 300), JSON_UNESCAPED_SLASHES) ?>,
-        "image": <?= json_encode($seoCover, JSON_UNESCAPED_SLASHES) ?>,
-        "url": <?= json_encode($seoCanonical, JSON_UNESCAPED_SLASHES) ?>,
-        "genre": <?= json_encode(array_column($seoGenres, 'name'), JSON_UNESCAPED_SLASHES) ?>
-    }
-    </script>
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-            {"@type": "ListItem", "position": 1, "name": "Home", "item": <?= json_encode(seo_absolute('index.html'), JSON_UNESCAPED_SLASHES) ?>},
-            {"@type": "ListItem", "position": 2, "name": <?= json_encode($seoBook['title'], JSON_UNESCAPED_SLASHES) ?>, "item": <?= json_encode($seoCanonical, JSON_UNESCAPED_SLASHES) ?>}
-        ]
-    }
-    </script>
-    <?php endif; ?>
 </head>
 <body>
 <header class="site-header">
@@ -143,7 +67,7 @@ if ($seoBook) {
         <p>Bookshelf Web Reader Platform</p>
     </div>
 </footer>
-<script src="assets/js/app.js?v=<?= ASSET_VERSION ?>" defer></script>
+<script src="assets/js/app.js?v=<?= ASSET_VERSION ?>"></script>
 <div class="user-panel-backdrop" id="userPanelBackdrop" hidden></div>
 <aside class="user-panel" id="userPanel" aria-label="User menu">
     <div class="user-panel-header">

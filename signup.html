@@ -1,33 +1,11 @@
-<?php
-require __DIR__ . '/version.php';
-require_once __DIR__ . '/includes/seo.php';
-$seoTitle = 'Sign Up - Bookshelf';
-$seoDesc = 'Create a Bookshelf account to save your library and reading history.';
-$seoRobots = 'noindex, nofollow';
-$seoCanonical = seo_absolute('signup.html');
-$seoOgImage = seo_absolute('assets/images/favicon.png');
-?>
+<?php require __DIR__ . '/version.php'; ?>
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sign Up - Bookshelf</title>
-    <meta name="description" content="Create a Bookshelf account to save your library and reading history.">
-    <meta name="robots" content="noindex, nofollow">
-    <link rel="canonical" href="<?= seo_escape($seoCanonical) ?>">
-    <meta name="theme-color" content="#ff6908">
-    <meta property="og:site_name" content="Bookshelf">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="<?= seo_escape($seoTitle) ?>">
-    <meta property="og:description" content="<?= seo_escape($seoDesc) ?>">
-    <meta property="og:url" content="<?= seo_escape($seoCanonical) ?>">
-    <meta property="og:image" content="<?= seo_escape($seoOgImage) ?>">
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="<?= seo_escape($seoTitle) ?>">
-    <meta name="twitter:description" content="<?= seo_escape($seoDesc) ?>">
     <link rel="icon" type="image/png" href="assets/images/favicon.png">
-    <link rel="preload" href="assets/css/style.css?v=<?= ASSET_VERSION ?>" as="style">
     <link rel="stylesheet" href="assets/css/style.css?v=<?= ASSET_VERSION ?>">
 </head>
 <body>
@@ -81,7 +59,7 @@ $seoOgImage = seo_absolute('assets/images/favicon.png');
         <p>Bookshelf Web Reader Platform</p>
     </div>
 </footer>
-<script src="assets/js/app.js?v=<?= ASSET_VERSION ?>" defer></script>
+<script src="assets/js/app.js?v=<?= ASSET_VERSION ?>"></script>
 <div class="user-panel-backdrop" id="userPanelBackdrop" hidden></div>
 <aside class="user-panel" id="userPanel" aria-label="User menu">
     <div class="user-panel-header">

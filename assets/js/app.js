@@ -95,36 +95,6 @@ function nl2br(value) {
     return escapeHtml(value).replace(/\n/g, '<br>');
 }
 
-function seoSlugify(value) {
-    return String(value || 'book')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .slice(0, 80) || 'book';
-}
-
-function seoBookHref(book) {
-    const id = Number(book && book.id);
-    if (!id || isNaN(id)) {
-        return 'index.html';
-    }
-    return `book/${seoSlugify(book.title || 'book')}-${id}`;
-}
-
-function currentBookId() {
-    const fromQuery = Number(queryParams().get('id') || 0);
-    if (fromQuery > 0) {
-        return fromQuery;
-    }
-    const match = window.location.pathname.match(/\/book\/(?:.*-)?(\d+)\/?$/);
-    if (match) {
-        return Number(match[1]) || 0;
-    }
-    return 0;
-}
-
 async function apiFetch(path, options = {}) {
     const response = await fetch(app.api(path), {
         credentials: 'same-origin',
@@ -162,8 +132,7 @@ function coverMarkup(book) {
         if (!safeSrc) {
             return `<div class="cover-placeholder">${escapeHtml(String(book.title || 'B').slice(0, 1))}</div>`;
         }
-        const alt = `${book.title || 'Book'}${book.author ? ` by ${book.author}` : ''} book cover`;
-        return `<img src="${escapeHtml(safeSrc)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async" width="400" height="555">`;
+        return `<img src="${escapeHtml(safeSrc)}" alt="${escapeHtml(book.title)} cover" loading="lazy" decoding="async">`;
     }
     return `<div class="cover-placeholder">${escapeHtml(String(book.title || 'B').slice(0, 1))}</div>`;
 }
@@ -179,7 +148,7 @@ function bookCardHtml(book, extra = '') {
         : '';
     return `
         <article class="book-card">
-            <a href="${seoBookHref(book)}">
+            <a href="book.html?id=${id}">
                 <div class="cover-frame">${coverMarkup(book)}${pdfBadge}</div>
                 <div class="book-card-body">
                     <h3>${escapeHtml(book.title)}</h3>
@@ -217,7 +186,7 @@ function continueCardHtml(item) {
     const isChapter = Number(item.chapter_id) > 0;
     const url = isChapter
         ? `reader.html?chapter_id=${Number(item.chapter_id)}`
-        : seoBookHref(item);
+        : `book.html?id=${Number(item.id)}`;
     const progress = isChapter
         ? `Ch. ${escapeHtml(item.chapter_number)} &middot; ${escapeHtml(new Date(item.last_read_at).toLocaleDateString())}`
         : 'PDF book';
@@ -313,7 +282,7 @@ function renderHeroSlideshow(books) {
         const description = book.description ||
             'Open this book to explore the full story and available reading options.';
 
-        const readUrl = seoBookHref(book);
+        const readUrl = `book.html?id=${Number(book.id)}`;
 
         return `
             <a
@@ -754,7 +723,7 @@ async function loadBookDetail() {
         return;
     }
 
-    const id = currentBookId();
+    const id = Number(queryParams().get('id') || 0);
     const list = document.querySelector('#chapterList');
     const count = document.querySelector('#chapterCount');
     const contentTitle = document.querySelector('#bookContentTitle');
@@ -793,11 +762,7 @@ async function loadBookDetail() {
         const chapters = Array.isArray(data.chapters) ? data.chapters : [];
         const author = String(book.author || '').trim() || 'Unknown author';
         const description = String(book.description || '').trim();
-        document.title = `${book.title || 'Book'} by ${author} | Bookshelf`;
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc && description) {
-            metaDesc.setAttribute('content', description.slice(0, 160));
-        }
+        document.title = `${book.title || 'Book'} - Bookshelf Reader`;
         detail.innerHTML = `
             <div class="detail-cover cover-frame">${coverMarkup(book)}</div>
             <div class="detail-copy">
@@ -1246,7 +1211,7 @@ async function loadPdfViewer(stream, bookId) {
         }
         document.title = `${book.title} - Bookshelf Reader`;
         title.textContent = book.title;
-        back.href = seoBookHref(book);
+        back.href = `book.html?id=${Number(book.id)}`;
         back.textContent = `< ${book.title}`;
         if (app.currentUser) {
             apiFetch('user/history.php', {
@@ -1314,7 +1279,7 @@ async function loadReader() {
         const chapter = data.chapter;
         document.title = `${chapter.book_title} - Chapter ${chapter.chapter_number}`;
         title.textContent = `Chapter ${chapter.chapter_number}: ${chapter.title}`;
-        back.href = `book/${seoSlugify(chapter.book_title || 'book')}-${Number(chapter.book_id)}`;
+        back.href = `book.html?id=${Number(chapter.book_id)}`;
         back.textContent = `< ${chapter.book_title}`;
         topActions.innerHTML = chapterButtons(data.previous_chapter_id, data.next_chapter_id, true);
         bottomActions.innerHTML = `${chapterButtons(data.previous_chapter_id, data.next_chapter_id)}<a class="button-link secondary" href="#" data-scroll-top>Back to top</a>`;
