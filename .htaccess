@@ -1,5 +1,16 @@
 AddType application/x-httpd-php .html
 
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Clean sitemap URL: /sitemap.xml -> /api/sitemap.php (works in subfolders too)
+    RewriteRule ^sitemap\.xml$ api/sitemap.php [L]
+    # Friendly book URLs: /book/some-title-123 -> /book.html?id=123
+    # Must not match real files/dirs.
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^book/(?:.*-)?(\d+)/?$ book.html?id=$1 [L,QSA,NC]
+</IfModule>
+
 <IfModule mod_headers.c>
     <FilesMatch "\.(html|htm|js|css)$">
         Header set Cache-Control "no-cache, no-store, must-revalidate"

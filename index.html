@@ -1,14 +1,65 @@
-<?php require __DIR__ . '/version.php'; ?>
+<?php
+require __DIR__ . '/version.php';
+require_once __DIR__ . '/includes/seo.php';
+$seoPage = max(1, (int) ($_GET['page'] ?? 1));
+$seoQ = trim($_GET['q'] ?? '');
+$seoGenre = trim($_GET['genre_name'] ?? '');
+if ($seoQ !== '') {
+    $seoTitle = 'Results for "' . mb_substr($seoQ, 0, 60) . '" | Bookshelf';
+    $seoDesc = 'Search results for "' . mb_substr($seoQ, 0, 80) . '" on Bookshelf. Browse matching books by title and author.';
+} elseif ($seoGenre !== '') {
+    $seoTitle = seo_escape($seoGenre) . ' Books | Bookshelf';
+    // Keep raw for meta builder below; escape at output.
+    $seoTitle = $seoGenre . ' Books | Bookshelf';
+    $seoDesc = 'Browse ' . $seoGenre . ' books on Bookshelf. Discover popular and recent titles.';
+} elseif ($seoPage > 1) {
+    $seoTitle = 'Fresh Reads — Page ' . $seoPage . ' | Bookshelf';
+    $seoDesc = 'Browse fresh reads on Bookshelf — page ' . $seoPage . '. Discover undiscovered stories, popular books and recommendations.';
+} else {
+    $seoTitle = 'Bookshelf — Fresh Reads, Popular Books & Recommendations';
+    $seoDesc = SEO_DEFAULT_DESCRIPTION;
+}
+$seoRobots = ($seoQ !== '' || isset($_GET['genre_id'])) ? 'noindex, follow' : 'index, follow, max-image-preview:large';
+$seoCanonical = seo_absolute('index.html' . ($seoPage > 1 ? '?page=' . $seoPage : ''));
+$seoOgImage = seo_absolute('assets/images/favicon.png');
+?>
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bookshelf</title>
-    
+    <title><?= seo_escape($seoTitle) ?></title>
+    <meta name="description" content="<?= seo_escape($seoDesc) ?>">
+    <meta name="robots" content="<?= seo_escape($seoRobots) ?>">
+    <link rel="canonical" href="<?= seo_escape($seoCanonical) ?>">
+    <meta name="theme-color" content="#ff6908">
+    <meta property="og:site_name" content="Bookshelf">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="<?= seo_escape($seoTitle) ?>">
+    <meta property="og:description" content="<?= seo_escape($seoDesc) ?>">
+    <meta property="og:url" content="<?= seo_escape($seoCanonical) ?>">
+    <meta property="og:image" content="<?= seo_escape($seoOgImage) ?>">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?= seo_escape($seoTitle) ?>">
+    <meta name="twitter:description" content="<?= seo_escape($seoDesc) ?>">
+    <meta name="twitter:image" content="<?= seo_escape($seoOgImage) ?>">
     <link rel="icon" type="image/png" href="assets/images/favicon.png">
-    
-        <link rel="stylesheet" href="assets/css/style.css?v=<?= ASSET_VERSION ?>">
+    <link rel="preload" href="assets/css/style.css?v=<?= ASSET_VERSION ?>" as="style">
+    <link rel="stylesheet" href="assets/css/style.css?v=<?= ASSET_VERSION ?>">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Bookshelf",
+        "url": <?= json_encode(seo_absolute('index.html'), JSON_UNESCAPED_SLASHES) ?>,
+        "description": <?= json_encode(SEO_DEFAULT_DESCRIPTION, JSON_UNESCAPED_SLASHES) ?>,
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": <?= json_encode(seo_absolute('index.html?q={search_term_string}'), JSON_UNESCAPED_SLASHES) ?>,
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
 </head>
 <body>
 <header class="site-header">
@@ -115,6 +166,7 @@
     </section>
 
     <div id="customSections"></div>
+    <noscript><p style="text-align:center">Bookshelf needs JavaScript to browse books. Popular titles and new arrivals are listed in our <a href="api/sitemap.php">sitemap</a>.</p></noscript>
 </main>
 
 <footer class="site-footer">
@@ -135,6 +187,6 @@
     </div>
     <div class="user-panel-body" id="userPanelBody"></div>
 </aside>
-<script src="assets/js/app.js?v=<?= ASSET_VERSION ?>"></script>
+<script src="assets/js/app.js?v=<?= ASSET_VERSION ?>" defer></script>
 </body>
 </html>
