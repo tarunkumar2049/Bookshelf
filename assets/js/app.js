@@ -623,15 +623,63 @@ const data = await apiFetch(
 
         pagination.innerHTML = '';
         if (data.pages > 1) {
-            for (let i = 1; i <= data.pages; i += 1) {
+            const current = Number(data.page) || 1;
+            const total = Number(data.pages) || 1;
+            const pageUrl = (i) => `index.html?q=${encodeURIComponent(search)}&page=${i}${genreId ? `&genre_id=${genreId}&genre_name=${encodeURIComponent(genreName)}` : ''}`;
+
+            const getPageList = (cur, tot) => {
+                if (tot <= 7) {
+                    return Array.from({ length: tot }, (_, idx) => idx + 1);
+                }
+                if (cur <= 4) {
+                    return [1, 2, 3, 4, 5, '...', tot];
+                }
+                if (cur >= tot - 3) {
+                    return [1, '...', tot - 4, tot - 3, tot - 2, tot - 1, tot];
+                }
+                return [1, '...', cur - 1, cur, cur + 1, '...', tot];
+            };
+
+            const prev = document.createElement('a');
+            prev.href = pageUrl(Math.max(1, current - 1));
+            prev.className = `page-arrow${current <= 1 ? ' disabled' : ''}`;
+            prev.setAttribute('aria-label', 'Previous page');
+            prev.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+            if (current <= 1) {
+                prev.setAttribute('aria-disabled', 'true');
+                prev.addEventListener('click', (e) => e.preventDefault());
+            }
+            pagination.appendChild(prev);
+
+            getPageList(current, total).forEach((item) => {
+                if (item === '...') {
+                    const dots = document.createElement('span');
+                    dots.className = 'page-ellipsis';
+                    dots.textContent = '...';
+                    pagination.appendChild(dots);
+                    return;
+                }
                 const link = document.createElement('a');
-                link.href = `index.html?q=${encodeURIComponent(search)}&page=${i}${genreId ? `&genre_id=${genreId}&genre_name=${encodeURIComponent(genreName)}` : ''}`;
-                link.textContent = i;
-                if (i === Number(data.page)) {
-                    link.className = 'active';
+                link.href = pageUrl(item);
+                link.textContent = item;
+                link.className = 'page-num';
+                if (item === current) {
+                    link.classList.add('active');
+                    link.setAttribute('aria-current', 'page');
                 }
                 pagination.appendChild(link);
+            });
+
+            const next = document.createElement('a');
+            next.href = pageUrl(Math.min(total, current + 1));
+            next.className = `page-arrow${current >= total ? ' disabled' : ''}`;
+            next.setAttribute('aria-label', 'Next page');
+            next.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+            if (current >= total) {
+                next.setAttribute('aria-disabled', 'true');
+                next.addEventListener('click', (e) => e.preventDefault());
             }
+            pagination.appendChild(next);
         }
     } catch (error) {
         grid.innerHTML = '';
