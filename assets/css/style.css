@@ -1,4 +1,5 @@
 :root {
+    color-scheme: light;
     /* Color tokens */
     --page: #d8d8d6;
     --ink: #282e00;
@@ -67,6 +68,7 @@
 }
 
 :root[data-theme="dark"] {
+    color-scheme: dark;
     --page: #111416;
     --ink: #f1efe7;
     --muted: #b9b5a8;
@@ -832,6 +834,11 @@ input,
 select {
     height: 44px;
     padding: 0 14px;
+}
+
+select option {
+    background-color: var(--panel);
+    color: var(--ink);
 }
 
 input[type="checkbox"],
