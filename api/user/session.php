@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mode = $data['mode'] ?? 'login';
     $email = trim($data['email'] ?? '');
     $password = $data['password'] ?? '';
+    $remember = !empty($data['remember']);
     $db = Database::connection();
 
     if (!verify_csrf_token($data['csrf_token'] ?? null)) {
@@ -71,10 +72,8 @@ if (time() > $expiry) {
         );
         $updateStmt->execute(['id' => (int) $user['id']]);
 
-        session_regenerate_id(true);
-        $_SESSION['user_id'] = (int) $user['id'];
-        unset($_SESSION['cached_user']);
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        $remember = $remember || !empty($_SESSION['remember_pending']);
+        set_logged_in_user((int) $user['id'], $remember);
         json_response(['ok' => true, 'user' => current_user(), 'csrf_token' => csrf_token()]);
     }
 
@@ -112,6 +111,7 @@ if (time() > $expiry) {
             $isResend = true;
         }
 
+        $_SESSION['remember_pending'] = $remember ? 1 : 0;
         $otp = create_reader_otp($db, $email);
         if (!send_reader_otp($email, $otp)) {
             if (!$isResend) {
@@ -140,10 +140,7 @@ if (time() > $expiry) {
         json_error('Invalid login details.', 401);
     }
 
-    session_regenerate_id(true);
-    $_SESSION['user_id'] = (int) $user['id'];
-    unset($_SESSION['cached_user']);
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    set_logged_in_user((int) $user['id'], $remember);
     json_response(['ok' => true, 'user' => current_user(), 'csrf_token' => csrf_token()]);
 }
 
