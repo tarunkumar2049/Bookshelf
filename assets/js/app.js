@@ -1387,7 +1387,6 @@ async function initReaderLogin() {
         registerForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const formData = new FormData(registerForm);
-            window._rememberMe = !!formData.get('remember');
             try {
                 const data = await apiFetch('user/session.php', {
                     method: 'POST',
@@ -1395,7 +1394,6 @@ async function initReaderLogin() {
                         mode: 'register',
                         email: formData.get('email'),
                         password: formData.get('password'),
-                        remember: window._rememberMe,
                         csrf_token: app.csrfToken,
                     }),
                 });
@@ -1421,7 +1419,6 @@ async function initReaderLogin() {
                         mode: 'verify',
                         email: formData.get('email'),
                         otp: formData.get('otp'),
-                        remember: window._rememberMe !== false,
                         csrf_token: app.csrfToken,
                     }),
                 });
